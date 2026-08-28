@@ -1,0 +1,12 @@
+01_database_schema.sql
+02_API_Specification.md
+03_Build_Spec_PRD.md
+04_Coding_Conventions_Setup.md
+Placement_Portal_Architecture.md
+
+node_modules/
+.next/
+out/
+coverage/
+.env*
+!.env.example
