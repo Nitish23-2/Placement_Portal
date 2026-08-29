@@ -165,4 +165,10 @@ h2 { max-width: 520px; margin: 14px 0 0; font-size: clamp(36px, 5vw, 60px); line
 .admin-list h2 { margin-bottom: 18px; font-size: 32px; }
 .admin-list-item { display: flex; justify-content: space-between; gap: 20px; padding: 16px 0; border-top: 1px solid var(--line); font-size: 13px; }
 .admin-list-item span { color: var(--muted); }
+.admin-actions { display: flex; align-items: center; gap: 16px; }
+.applicant-list { display: grid; gap: 12px; width: min(1000px, 100%); margin: 0 auto; }
+.applicant-item { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 26px 28px; background: #dfe3dd; }
+.applicant-item h2 { margin: 16px 0 8px; font-size: 28px; }
+.applicant-item p { margin: 0; color: var(--muted); font-size: 12px; }
+.applicant-item select { min-width: 130px; padding: 11px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font: inherit; font-size: 12px; text-transform: capitalize; }
 @media (max-width: 600px) { .detail-facts { grid-template-columns: 1fr; } .application-item { align-items: flex-start; flex-direction: column; } }
