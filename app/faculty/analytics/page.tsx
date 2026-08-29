@@ -1,0 +1,3 @@
+import Link from "next/link";
+
+export default function FacultyAnalyticsPage() { return <main className="portal-page"><header className="portal-header"><Link className="brand" href="/faculty/dashboard"><span className="brand-mark">PP</span><span><strong>Placement Portal</strong><small>GBPUAT Pantnagar</small></span></Link><Link className="text-link" href="/faculty/dashboard">Faculty dashboard</Link></header><section className="listing-intro"><p className="eyebrow">Branch analytics</p><h1>Measure progress without losing the people.</h1><p className="dashboard-copy">The summary endpoint is ready for the branch-scoped analytics cards and charts in the next presentation pass.</p></section></main>; }
