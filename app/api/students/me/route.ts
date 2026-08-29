@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { studentProfileSchema } from "@/lib/validators/student";
 
+function isProfileComplete(profile: ReturnType<typeof studentProfileSchema.parse>) {
+  const { general } = profile.biodata_json;
+  const requiredGeneral = [general.dob, general.category, general.sex, general.degree, general.permanent_address, general.father_name, general.mobile_no];
+  return profile.branch !== "Not set" && requiredGeneral.every(Boolean) && profile.biodata_json.education_summary.length === 3 && profile.biodata_json.certificate_accepted;
+}
+
 function jsonError(message: string, code: string, status: number) {
   return NextResponse.json({ data: null, error: { message, code } }, { status });
 }
@@ -37,7 +43,7 @@ export async function PUT(request: Request) {
 
   const { data, error } = await supabase
     .from("students")
-    .update(parsed.data)
+    .update({ ...parsed.data, profile_complete: isProfileComplete(parsed.data) })
     .eq("user_id", authData.user.id)
     .select("*")
     .single();
