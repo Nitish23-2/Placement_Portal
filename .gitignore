@@ -10,3 +10,5 @@ out/
 coverage/
 .env*
 !.env.example
+.vercel/
+*.tsbuildinfo
