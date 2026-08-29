@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/server";
+import { noticeSchema } from "@/lib/validators/notice";
 
 function errorResponse(message: string, code: string, status: number) {
   return NextResponse.json({ data: null, error: { message, code } }, { status });
@@ -22,4 +24,14 @@ export async function GET(request: NextRequest) {
   const { data, count, error } = await query;
   if (error) return errorResponse(error.message, "DATABASE_ERROR", 500);
   return NextResponse.json({ data: { items: data, page, limit, total: count ?? 0 }, error: null });
+}
+
+export async function POST(request: NextRequest) {
+  const auth = await requireRole(["admin"]);
+  if (auth.response) return auth.response;
+  const parsed = noticeSchema.safeParse(await request.json());
+  if (!parsed.success) return errorResponse(parsed.error.issues[0]?.message ?? "Invalid notice.", "VALIDATION_ERROR", 400);
+  const { data, error } = await auth.supabase.from("notices").insert({ ...parsed.data, posted_by: auth.user.id }).select("*").single();
+  if (error) return errorResponse(error.message, "DATABASE_ERROR", 500);
+  return NextResponse.json({ data, error: null }, { status: 201 });
 }
