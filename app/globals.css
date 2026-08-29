@@ -110,4 +110,10 @@ h2 { max-width: 520px; margin: 14px 0 0; font-size: clamp(36px, 5vw, 60px); line
 .dashboard-card p { max-width: 240px; color: #56615c; font-size: 13px; line-height: 1.55; }
 .card-arrow { position: absolute; right: 28px; bottom: 26px; font-weight: 700; }
 .compact-intro { max-width: 720px; margin-left: max(0px, calc((100% - 1180px) / 2)); }
+.profile-form { display: grid; gap: 20px; max-width: 680px; margin-top: 34px; }
+.profile-form label { display: grid; gap: 8px; color: var(--ink); font-size: 12px; font-weight: 700; }
+.profile-form input { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid var(--line); border-radius: 0; background: #fff; color: var(--ink); font: inherit; font-weight: 400; }
+.profile-fields { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; }
+.profile-form .button { width: fit-content; border: 0; cursor: pointer; }
+@media (max-width: 600px) { .profile-fields { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .portal-page { padding-right: 16px; padding-left: 16px; } .portal-header { padding: 20px 0; } .portal-status { display: none; } .dashboard-intro { padding: 64px 0 40px; } .dashboard-grid { grid-template-columns: 1fr; } .dashboard-card { min-height: 220px; } .dashboard-card h2 { margin-top: 38px; } }
