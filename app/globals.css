@@ -90,3 +90,24 @@ h2 { max-width: 520px; margin: 14px 0 0; font-size: clamp(36px, 5vw, 60px); line
 .auth-switch { margin: 4px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
 .auth-switch a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 520px) { .auth-page { padding: 20px 16px; } .auth-panel { margin-top: 8vh; padding: 30px 24px; } }
+
+.portal-page { min-height: 100vh; padding: 0 max(24px, 5vw) 80px; background: var(--paper); }
+.portal-header { display: flex; align-items: center; justify-content: space-between; width: min(1180px, 100%); margin: 0 auto; padding: 28px 0; border-bottom: 1px solid var(--line); }
+.portal-status { color: var(--muted); font-size: 12px; }
+.dashboard-intro, .dashboard-grid { width: min(1180px, 100%); margin-right: auto; margin-left: auto; }
+.dashboard-intro { padding: 80px 0 52px; }
+.dashboard-intro h1 { max-width: 780px; margin: 15px 0 22px; font-size: clamp(48px, 7vw, 86px); line-height: .94; }
+.dashboard-copy { max-width: 510px; color: var(--muted); font-size: 16px; line-height: 1.6; }
+.setup-banner { display: flex; flex-direction: column; gap: 8px; width: min(100%, 600px); padding: 18px 20px; border-left: 3px solid #7e9d26; background: var(--cream); color: var(--muted); font-size: 13px; line-height: 1.5; }
+.setup-banner strong { color: var(--ink); }
+.dashboard-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 14px; }
+.dashboard-card { position: relative; min-height: 270px; padding: 28px; background: #dfe3dd; transition: transform .2s ease; }
+.dashboard-card:hover { transform: translateY(-4px); }
+.dashboard-card-large { background: #dce7a8; }
+.dashboard-card:nth-child(3) { background: #d7e3e0; }
+.card-kicker { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.dashboard-card h2 { margin: 58px 0 12px; font-size: 30px; }
+.dashboard-card p { max-width: 240px; color: #56615c; font-size: 13px; line-height: 1.55; }
+.card-arrow { position: absolute; right: 28px; bottom: 26px; font-weight: 700; }
+.compact-intro { max-width: 720px; margin-left: max(0px, calc((100% - 1180px) / 2)); }
+@media (max-width: 760px) { .portal-page { padding-right: 16px; padding-left: 16px; } .portal-header { padding: 20px 0; } .portal-status { display: none; } .dashboard-intro { padding: 64px 0 40px; } .dashboard-grid { grid-template-columns: 1fr; } .dashboard-card { min-height: 220px; } .dashboard-card h2 { margin-top: 38px; } }
