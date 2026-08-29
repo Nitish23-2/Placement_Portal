@@ -1,0 +1,4 @@
+import { z } from "zod";
+
+export const companySchema = z.object({ name: z.string().trim().min(2).max(120), sector: z.string().trim().max(80).optional(), website: z.string().trim().url().optional().or(z.literal("")), contact_person: z.string().trim().max(120).optional(), contact_email: z.string().trim().email().optional().or(z.literal("")), contact_phone: z.string().trim().max(30).optional() });
+export const driveSchema = z.object({ company_id: z.string().uuid(), title: z.string().trim().min(2).max(160), description: z.string().trim().max(5000).optional(), ctc_min: z.coerce.number().min(0).optional().nullable(), ctc_max: z.coerce.number().min(0).optional().nullable(), eligibility_criteria: z.string().trim().max(2000).optional(), location: z.string().trim().max(120).optional(), apply_deadline: z.string().datetime().optional().nullable() });
