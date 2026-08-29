@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { MAX_UPLOAD_BYTES, safeFilename, uploadTypes, isValidFileExtension } from "@/lib/uploads";
+import {
+  MAX_UPLOAD_BYTES,
+  safeFilename,
+  uploadTypes,
+  isValidFileExtension,
+  validateFileContentSignature,
+} from "@/lib/uploads";
 
 function failure(message: string, code: string, status: number) {
   return NextResponse.json({ data: null, error: { message, code } }, { status });
@@ -25,8 +31,13 @@ export async function POST(request: Request) {
   const file = formData.get("file");
   if (!(file instanceof File)) return failure("Select a resume PDF.", "VALIDATION_ERROR", 400);
   if (file.size > MAX_UPLOAD_BYTES) return failure("Resume must be 5 MB or smaller.", "VALIDATION_ERROR", 400);
-  if (!uploadTypes.resume.types.includes(file.type as "application/pdf") || !isValidFileExtension(file.name, ["pdf"])) {
-    return failure("Resume must be a valid PDF file.", "VALIDATION_ERROR", 400);
+  if (!isValidFileExtension(file.name, ["pdf"])) {
+    return failure("Resume must have a .pdf extension.", "VALIDATION_ERROR", 400);
+  }
+
+  const isValidSignature = await validateFileContentSignature(file, ["pdf"]);
+  if (!isValidSignature) {
+    return failure("Uploaded file is not a valid PDF document.", "VALIDATION_ERROR", 400);
   }
 
   const oldResumePath = student.resume_url;
@@ -35,7 +46,7 @@ export async function POST(request: Request) {
   // 1. Upload NEW file first
   const { error: uploadError } = await supabase.storage
     .from(uploadTypes.resume.bucket)
-    .upload(newPath, file, { contentType: file.type, upsert: false });
+    .upload(newPath, file, { contentType: "application/pdf", upsert: false });
 
   if (uploadError) return failure(uploadError.message, "STORAGE_ERROR", 500);
 

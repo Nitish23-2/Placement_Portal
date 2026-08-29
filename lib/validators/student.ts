@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { normalizeBranchCode } from "../constants/branches";
+import { isValidBranchCode, normalizeBranchCode } from "../constants/branches";
 
 export const repeatedCourseSchema = z.object({
   course_name: z.string().trim(),
@@ -48,7 +48,10 @@ export const studentProfileSchema = z.object({
     .trim()
     .min(2, "Branch is required.")
     .max(80)
-    .transform((val) => normalizeBranchCode(val) || val),
+    .transform((val) => normalizeBranchCode(val))
+    .refine((val) => isValidBranchCode(val), {
+      message: "Please select a valid department from the official GBPUAT branch list.",
+    }),
   batch_year: z.coerce.number().int().min(2000, "Enter a valid batch year.").max(2100),
   cgpa: z.coerce.number().min(0).max(10).nullable(),
   active_backlogs: z.coerce.number().int().min(0).max(99),
@@ -99,7 +102,7 @@ export function checkProfileComplete(profile: {
     [key: string]: unknown;
   } | null;
 }): boolean {
-  if (!profile.branch || profile.branch === "Not set") return false;
+  if (!profile.branch || !isValidBranchCode(profile.branch)) return false;
   if (!profile.batch_year || profile.batch_year < 2000) return false;
 
   const biodata = profile.biodata_json;
@@ -116,9 +119,12 @@ export function checkProfileComplete(profile: {
     gen.mobile_no,
   ];
 
-  const hasValidGeneral = requiredGeneral.every((val) => typeof val === "string" && val.trim().length > 0);
+  const hasValidGeneral = requiredGeneral.every(
+    (val) => typeof val === "string" && val.trim().length > 0
+  );
   if (!hasValidGeneral) return false;
 
+  // Education must include at least 2 entries (Class X, XII, and optional Degree), each with valid boards & positive scores
   const edu = biodata.education_summary;
   if (!Array.isArray(edu) || edu.length < 2) return false;
   const hasValidEdu = edu.every(
@@ -134,6 +140,7 @@ export function checkProfileComplete(profile: {
   );
   if (!hasValidEdu) return false;
 
+  // Semester records: must have at least 1 semester with non-zero GPA & CGPA
   const sems = biodata.semester_record;
   if (!Array.isArray(sems) || sems.length === 0) return false;
   const hasValidSems = sems.every(

@@ -88,9 +88,12 @@ export function ProfileForm() {
             certificate_accepted: result.data.biodata_json?.certificate_accepted ?? false,
           });
 
+          // Match saved education by level name rather than positional array index
           setEducation(
-            emptyEducation.map((row, index) => {
-              const saved = savedEducation[index];
+            emptyEducation.map((row) => {
+              const saved = savedEducation.find(
+                (e: { level?: string }) => e.level?.toLowerCase() === row.level.toLowerCase()
+              );
               return saved
                 ? {
                     level: row.level,
@@ -150,14 +153,25 @@ export function ProfileForm() {
     setIsPending(true);
     setMessage("");
 
-    const validSemesters = semesters
-      .filter((s) => s.year.trim() && s.semester.trim())
-      .map((s) => ({
-        year: s.year.trim(),
-        semester: s.semester.trim(),
-        gpa: Number(s.gpa || 0),
-        cgpa: Number(s.cgpa || s.gpa || 0),
-      }));
+    // Validate semester GPA values
+    const hasInvalidSemesters = semesters.some((s) => {
+      const gpa = Number(s.gpa);
+      const cgpa = Number(s.cgpa);
+      return !s.year.trim() || !s.semester.trim() || isNaN(gpa) || gpa <= 0 || isNaN(cgpa) || cgpa <= 0;
+    });
+
+    if (hasInvalidSemesters) {
+      setIsPending(false);
+      setMessage("Please enter valid GPA and CGPA scores (> 0) for all added semester rows.");
+      return;
+    }
+
+    const validSemesters = semesters.map((s) => ({
+      year: s.year.trim(),
+      semester: s.semester.trim(),
+      gpa: Number(s.gpa),
+      cgpa: Number(s.cgpa),
+    }));
 
     try {
       const response = await fetch("/api/students/me", {
@@ -382,7 +396,7 @@ export function ProfileForm() {
               <input
                 required
                 type="number"
-                min="0"
+                min="0.1"
                 max="10"
                 step="0.01"
                 value={s.gpa}
@@ -394,7 +408,7 @@ export function ProfileForm() {
               <input
                 required
                 type="number"
-                min="0"
+                min="0.1"
                 max="10"
                 step="0.01"
                 value={s.cgpa}

@@ -16,7 +16,7 @@ export async function GET() {
     const { data: user } = await auth.supabase.from("users").select("branch_scope").eq("id", auth.user.id).single();
     if (!user?.branch_scope) return NextResponse.json({ data: [], error: null });
     const normalized = normalizeBranchCode(user.branch_scope);
-    query = query.or(`students.branch.eq.${normalized},students.branch.ilike.%${user.branch_scope}%`);
+    query = query.eq("students.branch", normalized);
   }
 
   const { data, error } = await query;

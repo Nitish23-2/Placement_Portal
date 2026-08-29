@@ -32,24 +32,26 @@ export async function notifyStudentsOfDrive(title: string, description: string |
   // Split into chunks of 50 to avoid API payload limits and maintain delivery reliability
   const batches = chunkArray(emails, 50);
 
-  for (const batch of batches) {
-    // Send using BCC to preserve student email privacy
-    await resend.emails
-      .send({
-        from: sender(),
-        to: sender(),
-        bcc: batch,
-        subject: `New Placement Drive: ${title}`,
-        text: `A new placement opportunity has been published at GBPUAT.\n\nRole: ${title}\n\n${
-          description ?? "Review role specifics, eligibility notes, and submit your application."
-        }\n\nLog in to the Placement Portal to apply: ${
-          process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-        }/drives`,
-      })
-      .catch((err) => {
-        console.error("Failed to send drive notification batch:", err);
-      });
-  }
+  // Send batches concurrently using Promise.allSettled to prevent long blocking timeouts
+  await Promise.allSettled(
+    batches.map((batch) =>
+      resend.emails
+        .send({
+          from: sender(),
+          to: sender(),
+          bcc: batch,
+          subject: `New Placement Drive: ${title}`,
+          text: `A new placement opportunity has been published at GBPUAT.\n\nRole: ${title}\n\n${
+            description ?? "Review role specifics, eligibility notes, and submit your application."
+          }\n\nLog in to the Placement Portal to apply: ${
+            process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+          }/drives`,
+        })
+        .catch((err) => {
+          console.error("Failed to send drive notification batch:", err);
+        })
+    )
+  );
 }
 
 export async function notifyApplicationStatus(email: string, title: string, status: string) {

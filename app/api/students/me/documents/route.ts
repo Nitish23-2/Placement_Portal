@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { MAX_UPLOAD_BYTES, safeFilename, uploadTypes, isValidFileExtension } from "@/lib/uploads";
+import {
+  MAX_UPLOAD_BYTES,
+  safeFilename,
+  uploadTypes,
+  isValidFileExtension,
+  validateFileContentSignature,
+} from "@/lib/uploads";
 
 function failure(message: string, code: string, status: number) {
   return NextResponse.json({ data: null, error: { message, code } }, { status });
@@ -33,11 +39,13 @@ export async function POST(request: Request) {
     return failure("Document must be 5 MB or smaller.", "VALIDATION_ERROR", 400);
   }
 
-  if (
-    !uploadTypes.document.types.includes(file.type as (typeof uploadTypes.document.types)[number]) ||
-    !isValidFileExtension(file.name, ["pdf", "jpg", "jpeg", "png"])
-  ) {
-    return failure("Document must be a valid PDF, JPEG, or PNG file.", "VALIDATION_ERROR", 400);
+  if (!isValidFileExtension(file.name, ["pdf", "jpg", "jpeg", "png"])) {
+    return failure("Document must have a valid .pdf, .jpg, .jpeg, or .png extension.", "VALIDATION_ERROR", 400);
+  }
+
+  const isValidSignature = await validateFileContentSignature(file, ["pdf", "jpg", "jpeg", "png"]);
+  if (!isValidSignature) {
+    return failure("Uploaded file signature does not match a valid PDF or Image format.", "VALIDATION_ERROR", 400);
   }
 
   const path = `${student.id}/${Date.now()}-${safeFilename(file.name)}`;

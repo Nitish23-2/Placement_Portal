@@ -25,9 +25,12 @@ describe("Branch taxonomy & normalization", () => {
     expect(normalizeBranchCode("Ece")).toBe("ece");
   });
 
-  it("resolves branch aliases to canonical codes", () => {
-    expect(normalizeBranchCode("Mechanical Engineering")).toBe("me");
+  it("resolves branch names with ampersands and aliases to canonical codes", () => {
+    expect(normalizeBranchCode("Computer Science & Engineering")).toBe("cse");
     expect(normalizeBranchCode("Computer Science and Engineering")).toBe("cse");
+    expect(normalizeBranchCode("Electronics & Communication Engineering")).toBe("ece");
+    expect(normalizeBranchCode("Industrial & Production Engineering")).toBe("ipe");
+    expect(normalizeBranchCode("Mechanical Engineering")).toBe("me");
     expect(normalizeBranchCode("Information Technology")).toBe("it");
     expect(normalizeBranchCode("Civil Engineering")).toBe("ce");
     expect(normalizeBranchCode("Agricultural Engineering")).toBe("ae");

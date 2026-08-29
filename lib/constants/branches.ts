@@ -10,7 +10,13 @@ export const BRANCHES: BranchOption[] = [
     code: "cse",
     name: "Computer Science & Engineering",
     shortName: "CSE",
-    aliases: ["computer science", "computer science and engineering", "cse", "cs"],
+    aliases: [
+      "computer science",
+      "computer science and engineering",
+      "computer science & engineering",
+      "cse",
+      "cs",
+    ],
   },
   {
     code: "it",
@@ -34,7 +40,13 @@ export const BRANCHES: BranchOption[] = [
     code: "ece",
     name: "Electronics & Communication Engineering",
     shortName: "ECE",
-    aliases: ["electronics and communication engineering", "electronics", "ece", "ec"],
+    aliases: [
+      "electronics and communication engineering",
+      "electronics & communication engineering",
+      "electronics",
+      "ece",
+      "ec",
+    ],
   },
   {
     code: "ce",
@@ -46,7 +58,13 @@ export const BRANCHES: BranchOption[] = [
     code: "ipe",
     name: "Industrial & Production Engineering",
     shortName: "IPE",
-    aliases: ["industrial and production engineering", "production engineering", "ipe", "ip"],
+    aliases: [
+      "industrial and production engineering",
+      "industrial & production engineering",
+      "production engineering",
+      "ipe",
+      "ip",
+    ],
   },
   {
     code: "ae",
@@ -56,11 +74,17 @@ export const BRANCHES: BranchOption[] = [
   },
 ];
 
+export const VALID_BRANCH_CODES = BRANCHES.map((b) => b.code);
+
 export function normalizeBranchCode(input?: string | null): string {
   if (!input) return "";
   const cleaned = input.trim().toLowerCase();
   const found = BRANCHES.find(
-    (b) => b.code.toLowerCase() === cleaned || b.aliases.some((alias) => alias.toLowerCase() === cleaned)
+    (b) =>
+      b.code.toLowerCase() === cleaned ||
+      b.shortName.toLowerCase() === cleaned ||
+      b.name.toLowerCase() === cleaned ||
+      b.aliases.some((alias) => alias.toLowerCase() === cleaned)
   );
   return found ? found.code : cleaned;
 }

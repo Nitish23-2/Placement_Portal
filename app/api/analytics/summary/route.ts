@@ -1,10 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth/server";
 import { getBranchName, normalizeBranchCode } from "@/lib/constants/branches";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const auth = await requireRole(["admin", "faculty"]);
   if (auth.response) return auth.response;
+
+  const batchYearParam = request.nextUrl.searchParams.get("batch_year");
+  const batchYear = batchYearParam ? parseInt(batchYearParam, 10) : null;
 
   let facultyBranchScope: string | null = null;
   if (auth.role === "faculty") {
@@ -25,10 +28,13 @@ export async function GET() {
     facultyBranchScope = normalizeBranchCode(user.branch_scope);
   }
 
-  // 1. Fetch all students (filtered by branch if faculty)
-  let studentsQuery = auth.supabase.from("students").select("id, branch");
+  // 1. Fetch all students (filtered by branch if faculty, and optionally by batch_year)
+  let studentsQuery = auth.supabase.from("students").select("id, branch, batch_year");
   if (facultyBranchScope) {
     studentsQuery = studentsQuery.or(`branch.eq.${facultyBranchScope},branch.ilike.%${facultyBranchScope}%`);
+  }
+  if (batchYear && !isNaN(batchYear)) {
+    studentsQuery = studentsQuery.eq("batch_year", batchYear);
   }
 
   const { data: students, error: studentsError } = await studentsQuery;

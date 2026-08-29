@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { provisionConfirmedUser } from "@/lib/auth/provision";
 
+function sanitizeDestination(next: string | null | undefined, fallback: string): string {
+  if (!next) return fallback;
+  const trimmed = next.trim();
+  // Ensure the destination is strictly internal and single-root relative
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("\\") || trimmed.includes("://")) {
+    return fallback;
+  }
+  return trimmed;
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
@@ -17,7 +27,10 @@ export async function GET(request: Request) {
         if (!provisionResult.ok) {
           console.error("User provisioning failed:", provisionResult.reason);
           return NextResponse.redirect(
-            new URL(`/login?error=provisioning_failed&reason=${encodeURIComponent(provisionResult.reason ?? "")}`, requestUrl.origin)
+            new URL(
+              `/login?error=provisioning_failed&reason=${encodeURIComponent(provisionResult.reason ?? "")}`,
+              requestUrl.origin
+            )
           );
         }
 
@@ -30,7 +43,7 @@ export async function GET(request: Request) {
         const role = profile?.role;
         const defaultDestination =
           role === "admin" ? "/admin/dashboard" : role === "faculty" ? "/faculty/dashboard" : "/dashboard";
-        const destination = next?.startsWith("/") ? next : defaultDestination;
+        const destination = sanitizeDestination(next, defaultDestination);
 
         return NextResponse.redirect(new URL(destination, requestUrl.origin));
       }
