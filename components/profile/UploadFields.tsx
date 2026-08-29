@@ -1,12 +1,33 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+
+interface StudentDocument {
+  id: string;
+  doc_type: string;
+  file_url: string;
+  uploaded_at: string;
+}
 
 export function UploadFields() {
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<StudentDocument[]>([]);
 
-  async function upload(url: string, body: FormData, input: HTMLInputElement) {
+  useEffect(() => {
+    fetch("/api/students/me")
+      .then(async (res) => {
+        const data = await res.json();
+        if (data?.data) {
+          setResumeUrl(data.data.resume_url ?? null);
+          setDocuments(data.data.student_documents ?? []);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  async function upload(url: string, body: FormData, input: HTMLInputElement, isResume = false) {
     setPending(true);
     setMessage("");
     try {
@@ -15,6 +36,11 @@ export function UploadFields() {
       if (!response.ok) throw new Error(result.error?.message ?? "Upload failed.");
       setMessage("File uploaded successfully.");
       input.value = "";
+      if (isResume && result.data?.resume_url) {
+        setResumeUrl(result.data.resume_url);
+      } else if (!isResume && result.data) {
+        setDocuments((prev) => [result.data, ...prev]);
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Upload failed.");
     } finally {
@@ -27,7 +53,7 @@ export function UploadFields() {
     if (!file) return;
     const body = new FormData();
     body.append("file", file);
-    void upload("/api/students/me/resume", body, event.target);
+    void upload("/api/students/me/resume", body, event.target, true);
   }
 
   function documentChange(event: ChangeEvent<HTMLInputElement>) {
@@ -36,8 +62,58 @@ export function UploadFields() {
     const body = new FormData();
     body.append("file", file);
     body.append("doc_type", "supporting_document");
-    void upload("/api/students/me/documents", body, event.target);
+    void upload("/api/students/me/documents", body, event.target, false);
   }
 
-  return <section className="upload-fields" aria-labelledby="upload-title"><h2 id="upload-title">Supporting files</h2><div className="upload-grid"><label>Resume PDF<input type="file" accept="application/pdf" disabled={pending} onChange={resumeChange} /></label><label>Supporting document<input type="file" accept="application/pdf,image/jpeg,image/png" disabled={pending} onChange={documentChange} /></label></div>{message && <p className="form-message" role="status">{message}</p>}</section>;
+  return (
+    <section className="upload-fields" aria-labelledby="upload-title">
+      <h2 id="upload-title">Supporting files &amp; Documents</h2>
+      <div className="upload-grid">
+        <label>
+          Resume PDF (Max 5MB)
+          <input type="file" accept="application/pdf" disabled={pending} onChange={resumeChange} />
+          {resumeUrl ? (
+            <span className="field-hint" style={{ color: "#3b5c1c", fontWeight: 600 }}>
+              ✓ Current resume uploaded ({resumeUrl.split("/").pop()})
+            </span>
+          ) : (
+            <span className="field-hint">No resume uploaded yet</span>
+          )}
+        </label>
+        <label>
+          Supporting document (PDF, JPEG, PNG)
+          <input
+            type="file"
+            accept="application/pdf,image/jpeg,image/png"
+            disabled={pending}
+            onChange={documentChange}
+          />
+          {documents.length > 0 ? (
+            <span className="field-hint" style={{ color: "#3b5c1c", fontWeight: 600 }}>
+              ✓ {documents.length} document(s) on file
+            </span>
+          ) : (
+            <span className="field-hint">Report cards, undertakings, ID proofs</span>
+          )}
+        </label>
+      </div>
+      {documents.length > 0 && (
+        <div style={{ marginTop: "16px" }}>
+          <p className="eyebrow">Uploaded documents</p>
+          <ul style={{ paddingLeft: "20px", fontSize: "13px", color: "var(--muted)" }}>
+            {documents.map((doc) => (
+              <li key={doc.id}>
+                {doc.doc_type} · {new Date(doc.uploaded_at).toLocaleDateString("en-IN")}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {message && (
+        <p className="form-message" role="status">
+          {message}
+        </p>
+      )}
+    </section>
+  );
 }
