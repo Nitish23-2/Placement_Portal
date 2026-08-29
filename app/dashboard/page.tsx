@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { NotificationInbox } from "@/components/notifications/NotificationInbox";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -12,7 +13,7 @@ export default async function DashboardPage() {
           <span className="brand-mark">PP</span>
           <span><strong>Placement Portal</strong><small>GBPUAT Pantnagar</small></span>
         </Link>
-        <span className="portal-status">Student workspace</span>
+        <span className="portal-status"><NotificationInbox /> Student workspace</span>
       </header>
       <section className="dashboard-intro">
         <p className="eyebrow">Your placement desk</p>

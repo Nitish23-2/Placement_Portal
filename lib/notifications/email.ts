@@ -69,3 +69,22 @@ export async function notifyApplicationStatus(email: string, title: string, stat
       console.error("Failed to send status update email:", err);
     });
 }
+
+export async function notifyDeadlineReminder(title: string, deadline: string | null, recipients?: string[]) {
+  const resend = getResend();
+  const admin = createAdminClient();
+  if (!resend || !admin) return;
+  const { data: students } = recipients ? { data: recipients.map((email) => ({ email })) } : await admin.from("users").select("email").eq("role", "student");
+  const emails = (students ?? []).map((student) => student.email).filter((email): email is string => Boolean(email));
+  for (const batch of chunkArray(emails, 50)) {
+    await resend.emails.send({ from: sender(), to: sender(), bcc: batch, subject: `Deadline tomorrow: ${title}`, text: `The application deadline for ${title} is ${deadline ?? "within 24 hours"}. Log in to the Placement Portal to review and apply.` }).catch(() => undefined);
+  }
+}
+
+export async function createNotificationsForUsers(users: string[], notification: { type: string; title: string; body: string; drive_id?: string; application_id?: string }) {
+  const admin = createAdminClient();
+  if (!admin || users.length === 0) return;
+  const { data: profiles } = await admin.from("users").select("id, email").in("email", users);
+  if (!profiles?.length) return;
+  await admin.from("notifications").upsert(profiles.map((profile) => ({ user_id: profile.id, ...notification })), { onConflict: "user_id,type,drive_id,application_id", ignoreDuplicates: true });
+}

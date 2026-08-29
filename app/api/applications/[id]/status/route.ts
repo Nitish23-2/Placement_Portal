@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth/server";
 import { applicationStatusSchema } from "@/lib/validators/application-status";
-import { notifyApplicationStatus } from "@/lib/notifications/email";
+import { createNotificationsForUsers, notifyApplicationStatus } from "@/lib/notifications/email";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireRole(["admin"]);
@@ -15,6 +15,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const student = Array.isArray(data.students) ? data.students[0] : data.students;
   const user = student && (Array.isArray(student.users) ? student.users[0] : student.users);
   const drive = Array.isArray(data.drives) ? data.drives[0] : data.drives;
-  if (user?.email && drive?.title) await notifyApplicationStatus(user.email, drive.title, parsed.data.status).catch(() => undefined);
+  if (user?.email && drive?.title) {
+    await createNotificationsForUsers([user.email], { type: "application_status", title: `Application update: ${drive.title}`, body: `Your application status is now ${parsed.data.status}.`, application_id: data.id });
+    await notifyApplicationStatus(user.email, drive.title, parsed.data.status).catch(() => undefined);
+  }
   return NextResponse.json({ data, error: null });
 }

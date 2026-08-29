@@ -19,7 +19,9 @@ function formatCtc(min: number | null, max: number | null) {
   return `CTC ${min ?? max} LPA`;
 }
 
-export default async function DrivesPage() {
+export default async function DrivesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const page = Math.max(Number((await searchParams).page ?? 1), 1);
+  const pageSize = 20;
   const supabase = await createClient();
   const { data: authData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   const { data } =
@@ -29,7 +31,7 @@ export default async function DrivesPage() {
           .select("*, companies(name, sector)")
           .eq("status", "published")
           .order("apply_deadline", { ascending: true, nullsFirst: false })
-          .limit(50)
+          .range((page - 1) * pageSize, page * pageSize)
       : { data: null };
 
   const drives = (data ?? []) as Drive[];
@@ -93,6 +95,7 @@ export default async function DrivesPage() {
           </div>
         )}
       </section>
+      {drives.length === pageSize && <nav className="pagination" aria-label="Drive pages"><Link className="button button-quiet" href={`/drives?page=${page + 1}`}>Next page <span aria-hidden="true">-&gt;</span></Link></nav>}
     </main>
   );
 }

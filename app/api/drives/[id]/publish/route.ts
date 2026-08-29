@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth/server";
-import { notifyStudentsOfDrive } from "@/lib/notifications/email";
+import { createNotificationsForUsers, notifyStudentsOfDrive } from "@/lib/notifications/email";
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireRole(["admin"]);
@@ -14,6 +14,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   if (error) return NextResponse.json({ data: null, error: { message: error.message, code: "DATABASE_ERROR" } }, { status: 500 });
   const { error: noticeError } = await auth.supabase.from("notices").insert({ title: `New drive: ${drive.title}`, body: drive.description ?? "A new placement drive is now open. Review the drive details and apply if it suits you.", drive_id: drive.id, posted_by: auth.user.id });
   if (noticeError) return NextResponse.json({ data: null, error: { message: noticeError.message, code: "DATABASE_ERROR" } }, { status: 500 });
+  const { data: students } = await auth.supabase.from("users").select("email").eq("role", "student");
+  await createNotificationsForUsers((students ?? []).map((student) => student.email), { type: "drive_published", title: `New drive: ${drive.title}`, body: drive.description ?? "A new placement drive is now open.", drive_id: drive.id });
   await notifyStudentsOfDrive(drive.title, drive.description).catch(() => undefined);
   return NextResponse.json({ data: published, error: null });
 }

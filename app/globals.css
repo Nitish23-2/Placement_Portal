@@ -173,6 +173,14 @@ h2 { max-width: 520px; margin: 14px 0 0; font-size: clamp(36px, 5vw, 60px); line
 .admin-list-item span { color: var(--muted); }
 .admin-actions { display: flex; align-items: center; gap: 16px; }
 .export-button { border: 0; padding: 0; background: transparent; cursor: pointer; font: inherit; }
+.pagination { display: flex; justify-content: flex-end; width: min(1000px, 100%); margin: 24px auto 0; }
+.notification-inbox { position: relative; display: inline-block; margin-right: 18px; }
+.notification-button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; }
+.notification-button span { display: inline-grid; width: 18px; height: 18px; margin-left: 4px; place-items: center; border-radius: 50%; background: var(--leaf); color: var(--ink); font-size: 10px; }
+.notification-panel { position: absolute; z-index: 2; top: 30px; right: 0; width: 300px; padding: 16px; background: var(--paper); box-shadow: 0 12px 28px rgba(23,37,34,.14); color: var(--ink); text-align: left; }
+.notification-panel article { display: grid; gap: 5px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.notification-panel p { margin: 0; color: var(--muted); line-height: 1.4; }
+.notification-panel time { color: var(--muted); font-size: 10px; }
 .applicant-list { display: grid; gap: 12px; width: min(1000px, 100%); margin: 0 auto; }
 .applicant-item { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 26px 28px; background: #dfe3dd; }
 .applicant-item h2 { margin: 16px 0 8px; font-size: 28px; }

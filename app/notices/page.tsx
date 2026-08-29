@@ -9,7 +9,9 @@ type Notice = {
   drives: { title: string; companies: { name: string } | null } | null;
 };
 
-export default async function NoticesPage() {
+export default async function NoticesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const page = Math.max(Number((await searchParams).page ?? 1), 1);
+  const pageSize = 20;
   const supabase = await createClient();
   const { data: authData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   const { data } =
@@ -18,7 +20,7 @@ export default async function NoticesPage() {
           .from("notices")
           .select("*, drives(title, companies(name))")
           .order("created_at", { ascending: false })
-          .limit(50)
+          .range((page - 1) * pageSize, page * pageSize)
       : { data: null };
 
   const notices = (data ?? []) as Notice[];
@@ -70,6 +72,7 @@ export default async function NoticesPage() {
           </div>
         )}
       </section>
+      {notices.length === pageSize && <nav className="pagination" aria-label="Notice pages"><Link className="button button-quiet" href={`/notices?page=${page + 1}`}>Next page <span aria-hidden="true">-&gt;</span></Link></nav>}
     </main>
   );
 }
