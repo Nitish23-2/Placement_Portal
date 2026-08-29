@@ -12,6 +12,9 @@ type Notice = {
 export default async function NoticesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const page = Math.max(Number((await searchParams).page ?? 1), 1);
   const pageSize = 20;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const supabase = await createClient();
   const { data: authData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   const { data } =
@@ -20,7 +23,7 @@ export default async function NoticesPage({ searchParams }: { searchParams: Prom
           .from("notices")
           .select("*, drives(title, companies(name))")
           .order("created_at", { ascending: false })
-          .range((page - 1) * pageSize, page * pageSize)
+          .range(from, to)
       : { data: null };
 
   const notices = (data ?? []) as Notice[];
@@ -72,7 +75,20 @@ export default async function NoticesPage({ searchParams }: { searchParams: Prom
           </div>
         )}
       </section>
-      {notices.length === pageSize && <nav className="pagination" aria-label="Notice pages"><Link className="button button-quiet" href={`/notices?page=${page + 1}`}>Next page <span aria-hidden="true">-&gt;</span></Link></nav>}
+      {(page > 1 || notices.length === pageSize) && (
+        <nav className="pagination" aria-label="Notice pages" style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+          {page > 1 && (
+            <Link className="button button-quiet" href={`/notices?page=${page - 1}`}>
+              &larr; Previous page
+            </Link>
+          )}
+          {notices.length === pageSize && (
+            <Link className="button button-quiet" href={`/notices?page=${page + 1}`}>
+              Next page <span aria-hidden="true">-&gt;</span>
+            </Link>
+          )}
+        </nav>
+      )}
     </main>
   );
 }

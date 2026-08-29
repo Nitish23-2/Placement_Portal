@@ -22,6 +22,9 @@ function formatCtc(min: number | null, max: number | null) {
 export default async function DrivesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const page = Math.max(Number((await searchParams).page ?? 1), 1);
   const pageSize = 20;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const supabase = await createClient();
   const { data: authData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   const { data } =
@@ -31,7 +34,7 @@ export default async function DrivesPage({ searchParams }: { searchParams: Promi
           .select("*, companies(name, sector)")
           .eq("status", "published")
           .order("apply_deadline", { ascending: true, nullsFirst: false })
-          .range((page - 1) * pageSize, page * pageSize)
+          .range(from, to)
       : { data: null };
 
   const drives = (data ?? []) as Drive[];
@@ -95,7 +98,20 @@ export default async function DrivesPage({ searchParams }: { searchParams: Promi
           </div>
         )}
       </section>
-      {drives.length === pageSize && <nav className="pagination" aria-label="Drive pages"><Link className="button button-quiet" href={`/drives?page=${page + 1}`}>Next page <span aria-hidden="true">-&gt;</span></Link></nav>}
+      {(page > 1 || drives.length === pageSize) && (
+        <nav className="pagination" aria-label="Drive pages" style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+          {page > 1 && (
+            <Link className="button button-quiet" href={`/drives?page=${page - 1}`}>
+              &larr; Previous page
+            </Link>
+          )}
+          {drives.length === pageSize && (
+            <Link className="button button-quiet" href={`/drives?page=${page + 1}`}>
+              Next page <span aria-hidden="true">-&gt;</span>
+            </Link>
+          )}
+        </nav>
+      )}
     </main>
   );
 }
