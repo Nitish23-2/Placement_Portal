@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { provisionConfirmedUser } from "@/lib/auth/provision";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -10,7 +11,11 @@ export async function GET(request: Request) {
 
   if (code && supabase) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(destination, requestUrl.origin));
+    if (!error) {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) await provisionConfirmedUser(data.user);
+      return NextResponse.redirect(new URL(destination, requestUrl.origin));
+    }
   }
 
   return NextResponse.redirect(new URL("/login?error=auth_callback", requestUrl.origin));

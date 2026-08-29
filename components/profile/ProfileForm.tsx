@@ -17,7 +17,7 @@ export function ProfileForm() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error?.message ?? "Unable to load profile.");
         if (result.data) {
-          setValues({ branch: result.data.branch ?? "", batch_year: String(result.data.batch_year ?? ""), cgpa: result.data.cgpa == null ? "" : String(result.data.cgpa), active_backlogs: String(result.data.active_backlogs ?? 0) });
+          setValues({ branch: result.data.branch === "Not set" ? "" : result.data.branch ?? "", batch_year: result.data.batch_year > 0 ? String(result.data.batch_year) : "", cgpa: result.data.cgpa == null ? "" : String(result.data.cgpa), active_backlogs: String(result.data.active_backlogs ?? 0) });
         }
         setMessage("");
       })

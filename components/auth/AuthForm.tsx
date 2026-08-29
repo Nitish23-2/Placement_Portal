@@ -33,7 +33,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         ? await supabase.auth.signUp({
             email,
             password,
-            options: { data: { full_name: fullName, ...getSignupIdentity(email) } },
+            options: {
+              data: { full_name: fullName, ...getSignupIdentity(email) },
+              emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+            },
           })
         : await supabase.auth.signInWithPassword({ email, password });
 
