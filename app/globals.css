@@ -138,3 +138,20 @@ h2 { max-width: 520px; margin: 14px 0 0; font-size: clamp(36px, 5vw, 60px); line
 .profile-form .button { width: fit-content; border: 0; cursor: pointer; }
 @media (max-width: 600px) { .profile-fields { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .portal-page { padding-right: 16px; padding-left: 16px; } .portal-header { padding: 20px 0; } .portal-status { display: none; } .dashboard-intro { padding: 64px 0 40px; } .dashboard-grid { grid-template-columns: 1fr; } .dashboard-card { min-height: 220px; } .dashboard-card h2 { margin-top: 38px; } }
+.application-list { display: grid; gap: 12px; width: min(1000px, 100%); margin: 0 auto; }
+.application-item { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 28px; background: #dfe3dd; }
+.application-item h2 { margin: 18px 0 8px; font-size: 28px; }
+.application-item p { margin: 0; color: var(--muted); font-size: 12px; }
+.status-pill { padding: 8px 11px; background: var(--leaf); color: var(--ink); font-size: 11px; font-weight: 700; text-transform: capitalize; }
+.status-rejected { background: #e4b8ad; }
+.detail-panel { width: min(900px, 100%); margin: 0 auto; padding: 86px 0; }
+.detail-panel h1 { max-width: 800px; margin: 16px 0 24px; font-size: clamp(52px, 8vw, 96px); line-height: .92; }
+.detail-description { max-width: 650px; color: var(--muted); font-size: 17px; line-height: 1.6; }
+.detail-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 48px 0; background: var(--line); }
+.detail-facts span { display: grid; gap: 8px; padding: 20px; background: var(--cream); color: var(--muted); font-size: 13px; }
+.detail-facts strong, .eligibility-note strong { color: var(--ink); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.eligibility-note { margin-bottom: 32px; padding: 22px; border-left: 3px solid var(--leaf); background: #e6e9dc; }
+.eligibility-note p { margin: 12px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.apply-action { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.apply-action .button { border: 0; cursor: pointer; }
+@media (max-width: 600px) { .detail-facts { grid-template-columns: 1fr; } .application-item { align-items: flex-start; flex-direction: column; } }
