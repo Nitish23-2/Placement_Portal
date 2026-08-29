@@ -134,6 +134,12 @@ h2 { max-width: 520px; margin: 14px 0 0; font-size: clamp(36px, 5vw, 60px); line
 .profile-check input { width: 16px; min-height: 16px; }
 .profile-fieldset { display: grid; gap: 14px; margin: 0; padding: 18px; border: 1px solid var(--line); }
 .profile-fieldset legend { padding: 0 8px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.upload-fields { display: grid; gap: 16px; max-width: 680px; margin-top: 42px; padding-top: 28px; border-top: 1px solid var(--line); }
+.upload-fields h2 { margin: 0; font-size: 28px; }
+.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.upload-grid label { display: grid; gap: 8px; font-size: 12px; font-weight: 700; }
+.upload-grid input { width: 100%; padding: 11px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 12px; }
+@media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } }
 .profile-fields { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; }
 .profile-form .button { width: fit-content; border: 0; cursor: pointer; }
 @media (max-width: 600px) { .profile-fields { grid-template-columns: 1fr; } }
