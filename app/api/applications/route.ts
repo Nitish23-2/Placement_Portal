@@ -64,16 +64,31 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ data, error: null }, { status: 201 });
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = await createClient();
-  const studentResult = await getStudent(supabase);
-  if (studentResult.error) return studentResult.error;
-
-  const { data, error } = await supabase!
-    .from("applications")
-    .select("*, drives(title, company_id, apply_deadline, companies(name, sector))")
-    .eq("student_id", studentResult.student.id)
-    .order("applied_at", { ascending: false });
+  if (!supabase) return errorResponse("Supabase is not configured.", "CONFIGURATION_ERROR", 503);
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return errorResponse("You must be signed in.", "AUTH_REQUIRED", 401);
+  const { data: user } = await supabase.from("users").select("role, branch_scope").eq("id", authData.user.id).maybeSingle();
+  const params = request.nextUrl.searchParams;
+  let query = supabase.from("applications").select("*, students!inner(enrollment_no, branch, batch_year, cgpa, users(full_name, email)), drives(title, company_id, apply_deadline, companies(name, sector))").order("applied_at", { ascending: false });
+  if (user?.role === "student") {
+    const studentResult = await getStudent(supabase);
+    if (studentResult.error) return studentResult.error;
+    query = query.eq("student_id", studentResult.student.id);
+  } else if (user?.role === "faculty") {
+    if (!user.branch_scope) return NextResponse.json({ data: [], error: null });
+    query = query.eq("students.branch", user.branch_scope);
+  } else if (user?.role !== "admin") {
+    return errorResponse("You do not have permission for this action.", "FORBIDDEN", 403);
+  }
+  const driveId = params.get("drive_id")?.trim();
+  const status = params.get("status")?.trim();
+  const branch = params.get("branch")?.trim();
+  if (driveId) query = query.eq("drive_id", driveId);
+  if (status) query = query.eq("status", status);
+  if (branch && user?.role === "admin") query = query.eq("students.branch", branch);
+  const { data, error } = await query;
 
   if (error) return errorResponse(error.message, "DATABASE_ERROR", 500);
   return NextResponse.json({ data, error: null });

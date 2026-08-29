@@ -47,7 +47,7 @@ export async function GET() {
     });
   }
 
-  const rows = Array.from(branches, ([code, stats]) => {
+  const rows = Array.from(branches.values(), (stats) => {
     const placed = stats.placedStudentIds.size;
     const pct = stats.total > 0 ? Math.round((placed / stats.total) * 10000) / 100 : 0;
     return [stats.branchName, stats.total, placed, `${pct}%`];

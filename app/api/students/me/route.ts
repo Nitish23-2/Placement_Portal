@@ -14,17 +14,18 @@ export async function GET() {
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) return jsonError("You must be signed in.", "AUTH_REQUIRED", 401);
 
-  let { data: student, error } = await supabase
+  const { data: initialStudent, error } = await supabase
     .from("students")
     .select("*, student_documents(*)")
     .eq("user_id", authData.user.id)
     .maybeSingle();
+  let student = initialStudent;
 
   // Auto-recovery: if student signed up but students row was missing, provision it
   if (!student && !error && authData.user.email) {
     const identity = getSignupIdentity(authData.user.email);
     if (identity?.role === "student") {
-      const { data: newStudent } = await supabase
+      const { data: newStudent, error: recoveryError } = await supabase
         .from("students")
         .upsert(
           {
@@ -38,6 +39,7 @@ export async function GET() {
         .select("*, student_documents(*)")
         .single();
       student = newStudent;
+      if (recoveryError) return jsonError(recoveryError.message, "DATABASE_ERROR", 500);
     }
   }
 
@@ -53,38 +55,45 @@ export async function PUT(request: Request) {
   if (authError || !authData.user) return jsonError("You must be signed in.", "AUTH_REQUIRED", 401);
 
   const body = await request.json();
-  const parsed = studentProfileSchema.safeParse(body);
-  if (!parsed.success) {
-    return jsonError(parsed.error.issues[0]?.message ?? "Invalid profile data.", "VALIDATION_ERROR", 400);
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return jsonError("Invalid profile data.", "VALIDATION_ERROR", 400);
   }
 
-  // Fetch current student record to deep-merge existing biodata_json (preserving PRF fields)
+  // Merge the patch with stored values before validating, so partial updates are safe.
   const { data: existingStudent } = await supabase
     .from("students")
-    .select("biodata_json")
+    .select("branch, batch_year, cgpa, active_backlogs, biodata_json")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
   const existingBiodata = (existingStudent?.biodata_json as Record<string, unknown>) ?? {};
-  const newBiodata = parsed.data.biodata_json;
+  const newBiodata = typeof body.biodata_json === "object" && body.biodata_json !== null ? body.biodata_json as Record<string, unknown> : {};
 
   const mergedBiodata = {
     ...existingBiodata,
     ...newBiodata,
     general: {
       ...((existingBiodata.general as Record<string, unknown>) ?? {}),
-      ...newBiodata.general,
+      ...((newBiodata.general as Record<string, unknown>) ?? {}),
     },
     regularity: {
       ...((existingBiodata.regularity as Record<string, unknown>) ?? {}),
-      ...newBiodata.regularity,
+      ...((newBiodata.regularity as Record<string, unknown>) ?? {}),
     },
   };
 
-  const updatedProfile = {
-    ...parsed.data,
+  const parsed = studentProfileSchema.safeParse({
+    ...existingStudent,
+    ...body,
+    branch: body.branch ?? existingStudent?.branch,
+    batch_year: body.batch_year ?? existingStudent?.batch_year,
+    cgpa: body.cgpa === undefined ? existingStudent?.cgpa ?? null : body.cgpa,
+    active_backlogs: body.active_backlogs ?? existingStudent?.active_backlogs ?? 0,
     biodata_json: mergedBiodata,
-  };
+  });
+  if (!parsed.success) return jsonError(parsed.error.issues[0]?.message ?? "Invalid profile data.", "VALIDATION_ERROR", 400);
+
+  const updatedProfile = parsed.data;
 
   const profileComplete = checkProfileComplete(updatedProfile);
 

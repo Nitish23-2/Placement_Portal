@@ -41,9 +41,9 @@ export default function AdminStudentsPage() {
           </span>
         </Link>
         <span className="admin-actions">
-          <a className="text-link" href="/api/students/export">
-            Export CSV
-          </a>
+          <form action="/api/students/export">
+            <button className="text-link export-button" type="submit">Export CSV</button>
+          </form>
           <Link className="text-link" href="/admin/dashboard">
             Admin dashboard
           </Link>

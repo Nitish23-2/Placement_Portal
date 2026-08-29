@@ -18,8 +18,19 @@ export const educationItemSchema = z.object({
   board_university: z.string().trim().min(1),
   completion_year: z.coerce.number().int().min(1990).max(2100),
   percentage: z.coerce.number().min(0).max(100).optional(),
-  cgpa_or_percentage: z.coerce.number().min(0).max(100).optional(),
+  cgpa_or_percentage: z.coerce.number().min(0).max(10).optional(),
+}).superRefine((item, context) => {
+  const isDegree = isDegreeLevel(item.level);
+  const score = isDegree ? item.cgpa_or_percentage : item.percentage;
+  if (score == null || score <= 0) {
+    context.addIssue({ code: "custom", message: isDegree ? "Degree CGPA must be greater than 0." : "Percentage must be greater than 0." });
+  }
 });
+
+function isDegreeLevel(level: string) {
+  const normalized = level.trim().toLowerCase();
+  return normalized.includes("b.tech") || normalized === "b.s." || normalized.includes("b.s");
+}
 
 export const semesterItemSchema = z.object({
   year: z.string().trim().min(1),
@@ -124,9 +135,12 @@ export function checkProfileComplete(profile: {
   );
   if (!hasValidGeneral) return false;
 
-  // Education must include at least 2 entries (Class X, XII, and optional Degree), each with valid boards & positive scores
+  // Completion requires the three PRF education levels, not merely three arbitrary rows.
   const edu = biodata.education_summary;
-  if (!Array.isArray(edu) || edu.length < 2) return false;
+  if (!Array.isArray(edu)) return false;
+  const levels = new Set(edu.map((item) => item.level?.trim().toLowerCase()));
+  const hasRequiredLevels = levels.has("x") && levels.has("xii") && [...levels].some((level) => typeof level === "string" && isDegreeLevel(level));
+  if (!hasRequiredLevels) return false;
   const hasValidEdu = edu.every(
     (item) =>
       typeof item.level === "string" &&
@@ -135,8 +149,9 @@ export function checkProfileComplete(profile: {
       item.board_university.trim().length > 0 &&
       typeof item.completion_year === "number" &&
       item.completion_year >= 1990 &&
-      ((typeof item.percentage === "number" && item.percentage > 0) ||
-        (typeof item.cgpa_or_percentage === "number" && item.cgpa_or_percentage > 0))
+      (isDegreeLevel(item.level ?? "")
+        ? typeof item.cgpa_or_percentage === "number" && item.cgpa_or_percentage > 0 && item.cgpa_or_percentage <= 10
+        : typeof item.percentage === "number" && item.percentage > 0 && item.percentage <= 100)
   );
   if (!hasValidEdu) return false;
 
