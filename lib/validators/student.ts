@@ -24,6 +24,12 @@ export const studentProfileSchema = z.object({
       percentage: z.coerce.number().optional(),
       cgpa_or_percentage: z.coerce.number().optional(),
     })),
+    semester_record: z.array(z.object({
+      year: z.string(),
+      semester: z.string(),
+      gpa: z.coerce.number().min(0).max(10),
+      cgpa: z.coerce.number().min(0).max(10),
+    })),
     certificate_accepted: z.boolean(),
   }),
 });

@@ -5,7 +5,7 @@ import { studentProfileSchema } from "@/lib/validators/student";
 function isProfileComplete(profile: ReturnType<typeof studentProfileSchema.parse>) {
   const { general } = profile.biodata_json;
   const requiredGeneral = [general.dob, general.category, general.sex, general.degree, general.permanent_address, general.father_name, general.mobile_no];
-  return profile.branch !== "Not set" && requiredGeneral.every(Boolean) && profile.biodata_json.education_summary.length === 3 && profile.biodata_json.certificate_accepted;
+  return profile.branch !== "Not set" && requiredGeneral.every(Boolean) && profile.biodata_json.education_summary.length === 3 && profile.biodata_json.semester_record.length > 0 && profile.biodata_json.certificate_accepted;
 }
 
 function jsonError(message: string, code: string, status: number) {
