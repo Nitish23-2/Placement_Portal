@@ -13,6 +13,7 @@ export function UploadFields() {
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [documents, setDocuments] = useState<StudentDocument[]>([]);
 
   useEffect(() => {
@@ -21,13 +22,14 @@ export function UploadFields() {
         const data = await res.json();
         if (data?.data) {
           setResumeUrl(data.data.resume_url ?? null);
+          setPhotoUrl(data.data.photo_url ?? null);
           setDocuments(data.data.student_documents ?? []);
         }
       })
       .catch(() => undefined);
   }, []);
 
-  async function upload(url: string, body: FormData, input: HTMLInputElement, isResume = false) {
+  async function upload(url: string, body: FormData, input: HTMLInputElement, kind: "resume" | "photo" | "document") {
     setPending(true);
     setMessage("");
     try {
@@ -36,9 +38,11 @@ export function UploadFields() {
       if (!response.ok) throw new Error(result.error?.message ?? "Upload failed.");
       setMessage("File uploaded successfully.");
       input.value = "";
-      if (isResume && result.data?.resume_url) {
+      if (kind === "resume" && result.data?.resume_url) {
         setResumeUrl(result.data.resume_url);
-      } else if (!isResume && result.data) {
+      } else if (kind === "photo" && result.data?.photo_url) {
+        setPhotoUrl(result.data.photo_url);
+      } else if (kind === "document" && result.data) {
         setDocuments((prev) => [result.data, ...prev]);
       }
     } catch (error) {
@@ -53,7 +57,7 @@ export function UploadFields() {
     if (!file) return;
     const body = new FormData();
     body.append("file", file);
-    void upload("/api/students/me/resume", body, event.target, true);
+    void upload("/api/students/me/resume", body, event.target, "resume");
   }
 
   function documentChange(event: ChangeEvent<HTMLInputElement>) {
@@ -62,13 +66,26 @@ export function UploadFields() {
     const body = new FormData();
     body.append("file", file);
     body.append("doc_type", "supporting_document");
-    void upload("/api/students/me/documents", body, event.target, false);
+    void upload("/api/students/me/documents", body, event.target, "document");
+  }
+
+  function photoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const body = new FormData();
+    body.append("file", file);
+    void upload("/api/students/me/photo", body, event.target, "photo");
   }
 
   return (
     <section className="upload-fields" aria-labelledby="upload-title">
       <h2 id="upload-title">Supporting files &amp; Documents</h2>
       <div className="upload-grid">
+        <label>
+          Profile photo (JPEG or PNG, max 5MB)
+          <input type="file" accept="image/jpeg,image/png" disabled={pending} onChange={photoChange} />
+          <span className="field-hint">{photoUrl ? `Current photo uploaded (${photoUrl.split("/").pop()})` : "No photo uploaded yet"}</span>
+        </label>
         <label>
           Resume PDF (Max 5MB)
           <input type="file" accept="application/pdf" disabled={pending} onChange={resumeChange} />

@@ -7,6 +7,7 @@ export const uploadTypes = {
     types: ["application/pdf", "image/jpeg", "image/png"],
     extensions: ["pdf", "jpg", "jpeg", "png"],
   },
+  photo: { bucket: "student-documents", types: ["image/jpeg", "image/png"], extensions: ["jpg", "jpeg", "png"] },
 } as const;
 
 export function safeFilename(filename: string): string {
@@ -17,7 +18,7 @@ export function safeFilename(filename: string): string {
     .slice(-120);
 }
 
-export function isValidFileExtension(filename: string, allowedExtensions: string[]): boolean {
+export function isValidFileExtension(filename: string, allowedExtensions: readonly string[]): boolean {
   const ext = filename.split(".").pop()?.toLowerCase();
   return ext ? allowedExtensions.includes(ext) : false;
 }
