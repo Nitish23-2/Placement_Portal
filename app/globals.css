@@ -110,6 +110,22 @@ h2 { max-width: 520px; margin: 14px 0 0; font-size: clamp(36px, 5vw, 60px); line
 .dashboard-card p { max-width: 240px; color: #56615c; font-size: 13px; line-height: 1.55; }
 .card-arrow { position: absolute; right: 28px; bottom: 26px; font-weight: 700; }
 .compact-intro { max-width: 720px; margin-left: max(0px, calc((100% - 1180px) / 2)); }
+.portal-nav { display: flex; gap: 24px; color: var(--muted); font-size: 12px; }
+.portal-nav a:hover { color: var(--ink); }
+.listing-intro { width: min(760px, 100%); margin: 0 auto; padding: 86px 0 50px; }
+.listing-intro h1 { margin: 16px 0 20px; font-size: clamp(48px, 7vw, 82px); line-height: .94; }
+.drive-list, .notice-list { display: grid; gap: 12px; width: min(1000px, 100%); margin: 0 auto; }
+.drive-item, .notice-item { display: grid; grid-template-columns: 1.25fr .75fr; gap: 42px; padding: 28px; background: #dfe3dd; }
+.drive-item:nth-child(even), .notice-item:nth-child(even) { background: #d7e3e0; }
+.drive-item h2, .notice-item h2 { margin: 18px 0 10px; font-size: 30px; }
+.drive-item p, .notice-item p { max-width: 600px; margin: 0; color: #56615c; font-size: 13px; line-height: 1.6; }
+.drive-meta { display: grid; align-content: start; gap: 9px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.drive-meta strong { color: var(--ink); font-size: 14px; }
+.drive-meta small { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.notice-item time { color: var(--muted); font-size: 12px; }
+.empty-state { display: grid; gap: 10px; padding: 34px 28px; border: 1px dashed var(--line); color: var(--muted); font-size: 13px; }
+.empty-state strong { color: var(--ink); font-size: 16px; }
+@media (max-width: 760px) { .portal-nav { gap: 14px; } .listing-intro { padding: 64px 0 38px; } .drive-item, .notice-item { grid-template-columns: 1fr; gap: 24px; } }
 .profile-form { display: grid; gap: 20px; max-width: 680px; margin-top: 34px; }
 .profile-form label { display: grid; gap: 8px; color: var(--ink); font-size: 12px; font-weight: 700; }
 .profile-form input { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid var(--line); border-radius: 0; background: #fff; color: var(--ink); font: inherit; font-weight: 400; }
