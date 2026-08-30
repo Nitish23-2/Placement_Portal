@@ -1,3 +1,9 @@
+# Internal documentation
+*.md
+
+# Internal database schema
+01_database_schema.sql
+
 # Dependencies
 node_modules/
 .pnp
@@ -26,3 +32,6 @@ out/
 .DS_Store
 *.pem
 Thumbs.db
+
+# Additional
+scripts/
