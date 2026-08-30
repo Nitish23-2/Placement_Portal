@@ -15,7 +15,7 @@ describe("Upload validation & sanitization", () => {
 
   it("sanitizes filenames safely", () => {
     expect(safeFilename("My Resume (2026).pdf")).toBe("my-resume-2026-.pdf");
-    expect(safeFilename("file///test..pdf")).toBe("file-test..pdf");
+    expect(safeFilename("file///test..pdf")).toBe("test..pdf");
   });
 
   it("detects valid and invalid magic byte signatures", async () => {

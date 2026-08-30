@@ -5,6 +5,8 @@ type Notice = {
   id: string;
   title: string;
   body: string | null;
+  attachment_url?: string | null;
+  category?: string;
   created_at: string;
   drives: { title: string; companies: { name: string } | null } | null;
 };
@@ -54,18 +56,36 @@ export default async function NoticesPage({ searchParams }: { searchParams: Prom
       <section className="notice-list" aria-label="Placement notices">
         {notices.length ? (
           notices.map((notice) => (
-            <article className="notice-item" key={notice.id}>
-              <div>
-                <span className="card-kicker">
-                  {notice.drives?.companies?.name ?? "Placement Cell"}{" "}
-                  {notice.drives ? ` / ${notice.drives.title}` : ""}
-                </span>
-                <h2>{notice.title}</h2>
-                <p>{notice.body ?? ""}</p>
+            <article className="notice-item" key={notice.id} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <span className="card-kicker">
+                    {notice.category ? `${notice.category.toUpperCase()} • ` : ""}
+                    {notice.drives?.companies?.name ?? "Placement Cell"}{" "}
+                    {notice.drives ? ` / ${notice.drives.title}` : ""}
+                  </span>
+                  <h2 style={{ margin: "4px 0" }}>{notice.title}</h2>
+                </div>
+                <time dateTime={notice.created_at} style={{ fontSize: "0.85rem", color: "var(--text-muted, #6c757d)", whiteSpace: "nowrap" }}>
+                  {new Date(notice.created_at).toLocaleDateString("en-IN")}
+                </time>
               </div>
-              <time dateTime={notice.created_at}>
-                {new Date(notice.created_at).toLocaleDateString("en-IN")}
-              </time>
+
+              <p style={{ margin: 0, whiteSpace: "pre-line" }}>{notice.body ?? ""}</p>
+
+              {notice.attachment_url && (
+                <div style={{ marginTop: "4px" }}>
+                  <a
+                    className="button button-quiet"
+                    href={`/api/notices/${notice.id}/attachment`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 12px" }}
+                  >
+                    📎 Download Attachment
+                  </a>
+                </div>
+              )}
             </article>
           ))
         ) : (

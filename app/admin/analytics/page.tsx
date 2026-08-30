@@ -15,17 +15,33 @@ type Summary = {
 
 export default function AdminAnalyticsPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
-  const [message, setMessage] = useState("Loading analytics...");
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
     fetch("/api/analytics/summary")
       .then(async (response) => {
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error?.message ?? "Unable to load analytics.");
-        setSummary(result.data);
-        setMessage("");
+        if (isMounted) {
+          if (response.ok && result.data) {
+            setSummary(result.data);
+          } else {
+            setErrorMessage(result.error?.message ?? "Unable to load analytics.");
+          }
+          setLoading(false);
+        }
       })
-      .catch((error: Error) => setMessage(error.message));
+      .catch((err) => {
+        if (isMounted) {
+          setErrorMessage(err instanceof Error ? err.message : "Unable to load analytics.");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -54,9 +70,13 @@ export default function AdminAnalyticsPage() {
           Institution-wide placement metrics, average compensation, and branch-wise breakdown for accreditation and NIRF reporting.
         </p>
       </section>
-      {message ? (
+      {loading ? (
         <div className="empty-state">
-          <strong>{message}</strong>
+          <strong>Loading analytics...</strong>
+        </div>
+      ) : errorMessage ? (
+        <div className="empty-state">
+          <strong>{errorMessage}</strong>
         </div>
       ) : (
         summary && (

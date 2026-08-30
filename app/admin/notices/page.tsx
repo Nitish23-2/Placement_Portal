@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 type Notice = {
   id: string;
   title: string;
   body: string | null;
   category?: string;
+  attachment_url?: string | null;
   archived?: boolean;
   created_at: string;
   drives?: { title: string } | null;
@@ -21,6 +22,7 @@ export default function AdminNoticesPage() {
   const [category, setCategory] = useState("general");
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
+  const [uploadingNoticeId, setUploadingNoticeId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -59,11 +61,41 @@ export default function AdminNoticesPage() {
       setTitle("");
       setBody("");
       setCategory("general");
-      setMessage("Notice published to all students and faculty.");
+      setMessage("Notice published to all students and faculty. You may now attach supporting files.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create notice.");
     } finally {
       setPending(false);
+    }
+  }
+
+  async function handleAttachmentUpload(noticeId: string, event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingNoticeId(noticeId);
+    setMessage("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`/api/notices/${noticeId}/attachment`, {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error?.message ?? "Attachment upload failed.");
+
+      setNotices((prev) =>
+        prev.map((n) => (n.id === noticeId ? { ...n, attachment_url: result.data.attachment_url } : n))
+      );
+      setMessage("Notice attachment uploaded successfully.");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Attachment upload failed.");
+    } finally {
+      setUploadingNoticeId(null);
+      event.target.value = "";
     }
   }
 
@@ -86,7 +118,7 @@ export default function AdminNoticesPage() {
         <p className="eyebrow">Notice Board Management</p>
         <h1>Put the right information in reach.</h1>
         <p className="dashboard-copy">
-          Notices are visible to all students and faculty across College of Technology and permanently recorded.
+          Notices are visible to all students and faculty across College of Technology, permanently recorded, and support PDF/image attachments.
         </p>
 
         {/* Publish Notice Form */}
@@ -123,7 +155,7 @@ export default function AdminNoticesPage() {
             <p className="dashboard-copy">Loading notices...</p>
           ) : notices.length ? (
             notices.map((n) => (
-              <div className="admin-list-item" key={n.id} style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "16px" }}>
+              <div className="admin-list-item" key={n.id} style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
                     <span className="card-kicker" style={{ textTransform: "capitalize" }}>
@@ -138,6 +170,25 @@ export default function AdminNoticesPage() {
                 <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-color, #495057)", whiteSpace: "pre-line" }}>
                   {n.body}
                 </p>
+
+                {/* Attachment Manager */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", borderTop: "1px solid var(--border-color, #f1f3f5)", paddingTop: "8px", fontSize: "0.85rem" }}>
+                  {n.attachment_url ? (
+                    <span style={{ color: "#198754", fontWeight: 500 }}>📎 Attachment Attached</span>
+                  ) : (
+                    <span style={{ color: "var(--text-muted, #6c757d)" }}>No attachment</span>
+                  )}
+                  <label style={{ cursor: "pointer", color: "#0d6efd", textDecoration: "underline", margin: 0 }}>
+                    {uploadingNoticeId === n.id ? "Uploading..." : n.attachment_url ? "Replace Attachment" : "Attach Document/PDF"}
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/*"
+                      style={{ display: "none" }}
+                      disabled={uploadingNoticeId === n.id}
+                      onChange={(e) => void handleAttachmentUpload(n.id, e)}
+                    />
+                  </label>
+                </div>
               </div>
             ))
           ) : (

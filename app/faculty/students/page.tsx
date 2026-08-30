@@ -17,17 +17,33 @@ type Student = {
 
 export default function FacultyStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
-  const [message, setMessage] = useState("Loading department cohort...");
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
     fetch("/api/students")
       .then(async (response) => {
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error?.message ?? "Unable to load students.");
-        setStudents(result.data?.items ?? []);
-        setMessage("");
+        if (isMounted) {
+          if (response.ok && result.data) {
+            setStudents(result.data.items ?? result.data ?? []);
+          } else {
+            setErrorMessage(result.error?.message ?? "Unable to load students.");
+          }
+          setLoading(false);
+        }
       })
-      .catch((error: Error) => setMessage(error.message));
+      .catch((err) => {
+        if (isMounted) {
+          setErrorMessage(err instanceof Error ? err.message : "Unable to load students.");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -52,9 +68,13 @@ export default function FacultyStudentsPage() {
         </p>
       </section>
       <section className="faculty-list">
-        {message ? (
+        {loading ? (
           <div className="empty-state">
-            <strong>{message}</strong>
+            <strong>Loading department cohort...</strong>
+          </div>
+        ) : errorMessage ? (
+          <div className="empty-state">
+            <strong>{errorMessage}</strong>
           </div>
         ) : students.length ? (
           students.map((student) => (

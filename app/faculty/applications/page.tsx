@@ -14,17 +14,33 @@ type Application = {
 
 export default function FacultyApplicationsPage() {
   const [items, setItems] = useState<Application[]>([]);
-  const [message, setMessage] = useState("Loading department applications...");
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
     fetch("/api/faculty/applications")
       .then(async (response) => {
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error?.message ?? "Unable to load applications.");
-        setItems(result.data ?? []);
-        setMessage("");
+        if (isMounted) {
+          if (response.ok && result.data) {
+            setItems(result.data ?? []);
+          } else {
+            setErrorMessage(result.error?.message ?? "Unable to load applications.");
+          }
+          setLoading(false);
+        }
       })
-      .catch((error: Error) => setMessage(error.message));
+      .catch((err) => {
+        if (isMounted) {
+          setErrorMessage(err instanceof Error ? err.message : "Unable to load applications.");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -49,9 +65,13 @@ export default function FacultyApplicationsPage() {
         </p>
       </section>
       <section className="faculty-list">
-        {message ? (
+        {loading ? (
           <div className="empty-state">
-            <strong>{message}</strong>
+            <strong>Loading department applications...</strong>
+          </div>
+        ) : errorMessage ? (
+          <div className="empty-state">
+            <strong>{errorMessage}</strong>
           </div>
         ) : items.length ? (
           items.map((item) => (

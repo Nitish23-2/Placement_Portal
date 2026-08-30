@@ -1,15 +1,28 @@
-01_database_schema.sql
-02_API_Specification.md
-03_Build_Spec_PRD.md
-04_Coding_Conventions_Setup.md
-Placement_Portal_Architecture.md
-PLACEMENT PORTAL — COMPLETE PRE-DEPLOYMENT REMEDIATION & PRODUCTION HARDENING.md
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
 .next/
 out/
-coverage/
-.env*
-!.env.example
+
+# Production & Vercel
 .vercel/
 *.tsbuildinfo
-scripts/
+*.zip
+
+# Environment & Local Secrets
+.env*.local
+.env
+.env.production
+.env.staging
+!.env.example
+
+# OS / IDE metadata
+.DS_Store
+*.pem
+Thumbs.db

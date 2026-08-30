@@ -11,10 +11,12 @@ export const uploadTypes = {
 } as const;
 
 export function safeFilename(filename: string): string {
-  return filename
+  const basename = filename.split(/[/\\]/).pop() ?? filename;
+  return basename
     .toLowerCase()
     .replace(/[^a-z0-9._-]/g, "-")
     .replace(/-+/g, "-")
+    .replace(/^\.+/, "")
     .slice(-120);
 }
 
