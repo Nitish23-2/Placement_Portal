@@ -7,7 +7,7 @@ export const uploadTypes = {
     types: ["application/pdf", "image/jpeg", "image/png"],
     extensions: ["pdf", "jpg", "jpeg", "png"],
   },
-  photo: { bucket: "student-documents", types: ["image/jpeg", "image/png"], extensions: ["jpg", "jpeg", "png"] },
+  photo: { bucket: "student-photos", types: ["image/jpeg", "image/png"], extensions: ["jpg", "jpeg", "png"] },
 } as const;
 
 export function safeFilename(filename: string): string {
